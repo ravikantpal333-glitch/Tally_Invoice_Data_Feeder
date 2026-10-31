@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tally Invoice Data Feeder</title>
+
+    <style>
+        :root {
+            --navy: #17365d;
+            --navy-dark: #102744;
+            --blue: #2563eb;
+            --page: #f3f6fa;
+            --border: #d9e1ec;
+            --text: #182230;
+            --muted: #667085;
+            --green: #15803d;
+            --green-bg: #f0fdf4;
+            --red: #b42318;
+            --red-bg: #fef3f2;
+            --white: #fff
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            background: var(--page);
+            color: var(--text);
+            font: 15px/1.5 "Segoe UI", Arial, sans-serif
+        }
+
+        .page-shell {
+            width: min(1240px, calc(100% - 40px));
+            margin: 34px auto
+        }
+
+        .hero {
+            padding: 28px 32px;
+            border-radius: 14px;
+            color: #fff;
+            background: linear-gradient(115deg, var(--navy-dark), var(--navy));
+            box-shadow: 0 8px 22px #1027441f
+        }
+
+        .eyebrow {
+            margin: 0 0 7px;
+            color: #c8d8ed;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: 1.4px;
+            text-transform: uppercase
+        }
+
+        h1 {
+            margin: 0;
+            font-size: clamp(25px, 3vw, 34px);
+            font-weight: 700;
+            letter-spacing: -.5px
+        }
+
+        .hero p {
+            margin: 8px 0 0;
+            color: #e0eaf5
+        }
+
+        .panel {
+            margin-top: 22px;
+            padding: 24px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: #fff;
+            box-shadow: 0 3px 12px #1027440a
+        }
+
+        .section-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 8px
+        }
+
+        h2 {
+            margin: 0;
+            color: var(--navy);
+            font-size: 20px
+        }
+
+        .section-description {
+            margin: 5px 0 18px;
+            color: var(--muted)
+        }
+
+        .limit-pill {
+            flex-shrink: 0;
+            padding: 6px 11px;
+            border-radius: 999px;
+            background: #edf4ff;
+            color: var(--navy);
+            font-size: 12px;
+            font-weight: 700
+        }
+
+        .table-wrap {
+            width: 100%;
+            overflow-x: auto;
+            border: 1px solid var(--border);
+            border-radius: 10px
+        }
+
+        table {
+            width: 100%;
+            min-width: 940px;
+            border-collapse: collapse
+        }
+
+        th,
+        td {
+            padding: 13px 12px;
+            border-bottom: 1px solid #e8edf3;
+            text-align: left;
+            vertical-align: middle
+        }
+
+        th {
+            background: #f8fafc;
+            color: #344054;
+            font-size: 12px;
+            font-weight: 700;
+            letter-spacing: .45px;
+            text-transform: uppercase
+        }
+
+        tbody tr:last-child td {
+            border-bottom: 0
+        }
+
+        tbody tr:hover {
+            background: #fbfdff
+        }
+
+        input[type=file],
+        select,
+        input[type=text] {
+            width: 100%;
+            min-height: 42px;
+            border: 1px solid #cbd5e1;
+            border-radius: 7px;
+            background: #fff;
+            color: var(--text);
+            font: inherit
+        }
+
+        input[type=file] {
+            padding: 7px;
+            font-size: 13px
+        }
+
+        input[type=file]::file-selector-button {
+            margin-right: 8px;
+            padding: 7px 10px;
+            border: 0;
+            border-radius: 5px;
+            background: #edf2f7;
+            color: #243b53;
+            font-weight: 600;
+            cursor: pointer
+        }
+
+        select,
+        input[type=text] {
+            padding: 9px 10px
+        }
+
+        input:focus,
+        select:focus,
+        button:focus-visible {
+            outline: 3px solid #2563eb2e;
+            outline-offset: 1px;
+            border-color: var(--blue)
+        }
+
+        .file-status {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            min-height: 22px;
+            margin-top: 6px;
+            font-size: 12px;
+            overflow-wrap: anywhere
+        }
+
+        .status-pending {
+            color: var(--muted)
+        }
+
+        .status-success {
+            color: var(--green);
+            font-weight: 700
+        }
+
+        .status-error {
+            color: var(--red);
+            font-weight: 600
+        }
+
+        .actions-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 16px
+        }
+
+        .row-actions,
+        .main-actions {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px
+        }
+
+        button {
+            min-height: 42px;
+            padding: 10px 16px;
+            border: 1px solid transparent;
+            border-radius: 8px;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background .15s ease, transform .15s ease
+        }
+
+        button:active {
+            transform: translateY(1px)
+        }
+
+        button:disabled {
+            cursor: not-allowed;
+            opacity: .55
+        }
+
+        .btn-add {
+            border-color: #a7d7b5;
+            background: #f0fdf4;
+            color: #166534
+        }
+
+        .btn-add:hover:not(:disabled) {
+            background: #dcfce7
+        }
+
+        .btn-remove {
+            border-color: #f0b7b2;
+            background: #fff7f6;
+            color: #b42318
+        }
+
+        .btn-remove:hover:not(:disabled) {
+            background: #fee4e2
+        }
+
+        .btn-primary {
+            background: var(--navy);
+            color: #fff
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #214b7b
+        }
+
+        .btn-submit {
+            background: var(--green);
+            color: #fff
+        }
+
+        .btn-submit:hover:not(:disabled) {
+            background: #166534
+        }
+
+        .help-text {
+            margin: 14px 0 0;
+            color: var(--muted);
+            font-size: 13px
+        }
+
+        .process-status {
+            display: none;
+            margin-top: 16px;
+            padding: 14px 16px;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            overflow-wrap: anywhere
+        }
+
+        .process-status.visible {
+            display: block
+        }
+
+        .process-status.success {
+            border-color: #86efac;
+            background: var(--green-bg);
+            color: #166534
+        }
+
+        .process-status.error {
+            border-color: #f0b7b2;
+            background: var(--red-bg);
+            color: #b42318
+        }
+
+        .process-status.info {
+            border-color: #bfdbfe;
+            background: #eff6ff;
+            color: #1d4ed8
+        }
+
+        .process-status strong {
+            display: block;
+            margin-bottom: 3px
+        }
+
+        .process-status ul {
+            margin: 8px 0 0;
+            padding-left: 20px
+        }
+
+        .submit-result {
+            display: none;
+            margin-top: 14px;
+            padding: 13px 15px;
+            border: 1px solid #86efac;
+            border-radius: 9px;
+            background: var(--green-bg);
+            color: #166534;
+            font-weight: 700
+        }
+
+        .submit-result.visible {
+            display: block
+        }
+
+        .footer-note {
+            padding: 18px 4px 0;
+            color: var(--muted);
+            font-size: 12px;
+            text-align: center
+        }
+
+        @media(max-width:700px) {
+            .page-shell {
+                width: calc(100% - 20px);
+                margin: 14px auto
+            }
+
+            .hero {
+                padding: 22px 20px
+            }
+
+            .panel {
+                padding: 17px 14px
+            }
+
+            .section-heading {
+                align-items: flex-start;
+                flex-direction: column
+            }
+
+            .actions-row {
+                align-items: stretch;
+                flex-direction: column
+            }
+
+            .row-actions,
+            .main-actions {
+                width: 100%
+            }
+
+            .row-actions button,
+            .main-actions button {
+                flex: 1
+            }
+        }
+
+        /* Align Sales Person and Type dropdowns with the PDF input */
+        tbody td:nth-child(3),
+        tbody td:nth-child(4) {
+            vertical-align: top;
+        }
+    </style>
+</head>
+
+<body>
+    <main class="page-shell">
+        <header class="hero">
+            <p class="eyebrow">Invoice Operations Portal</p>
+            <h1>Tally Invoice Data Feeder</h1>
+            <p>Upload invoice PDFs, validate files, and prepare invoice data for submission.</p>
+        </header>
+        <section class="panel" aria-labelledby="invoice-section-title">
+            <div class="section-heading">
+                <div>
+                    <h2 id="invoice-section-title">Invoice Details</h2>
+                    <p class="section-description">Select one PDF per row. You can add up to 10 PDFs in one batch.</p>
+                </div><span class="limit-pill" id="row-count">1 of 10 PDFs</span>
+            </div>
+            <form id="invoice-form" action="/upload" method="POST" enctype="multipart/form-data">
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th scope="col">SN</th>
+                                <th scope="col">PDF File</th>
+                                <th scope="col">Name of Sales Person</th>
+                                <th scope="col">Type</th>
+                            </tr>
+                        </thead>
+                        <tbody id="invoice-rows"></tbody>
+                    </table>
+                </div>
+                <div class="actions-row">
+                    <div class="row-actions"><button type="button" class="btn-add" id="add-row">＋ Add
+                            Column</button><button type="button" class="btn-remove" id="remove-row">− Remove
+                            Column</button></div>
+                    <div class="main-actions"><button type="button" class="btn-primary" id="upload-invoices">Upload
+                            Invoice</button><button type="button" class="btn-submit" id="submit-invoices"
+                            disabled>Submit</button></div>
+                </div>
+                <p class="help-text">Upload Invoice validates and processes every selected PDF. Submit will be enabled
+                    only after all files pass validation.</p>
+                <div id="upload-status" class="process-status" role="status" aria-live="polite"></div>
+                <div id="submit-result" class="submit-result" role="status" aria-live="polite"></div>
+            </form>
+        </section>
+        <p class="footer-note">Internal invoice processing tool</p>
+    </main>
+    <script>
+        const MAX_FILES = 10, rowsContainer = document.getElementById("invoice-rows"), addButton = document.getElementById("add-row"), removeButton = document.getElementById("remove-row"), uploadButton = document.getElementById("upload-invoices"), submitButton = document.getElementById("submit-invoices"), rowCount = document.getElementById("row-count"), uploadStatus = document.getElementById("upload-status"), submitResult = document.getElementById("submit-result");
+        let batchValidated = false;
+        function makeCell(content) { const td = document.createElement("td"); td.appendChild(content); return td }
+
+        /*Add new Code*/
+
+        const SALES_PERSONS = [
+            "Deepti",
+            "Varsha",
+            "Neetu",
+            "Pooja",
+            "Kaustuk",
+            "Rajesh Malhotra",
+            "Ankit",
+            "Silky",
+            "Mayank Sir",
+            "Abhinav Sir",
+            "Direct Gem Contract",
+            "Rakesh",
+            "Anjali",
+            "Sanjoy Sir",
+            "Uttam",
+            "Jitender"
+        ];
+
+        const INVOICE_TYPES = ["Project", "Other", "Other1"];
+
+        function createSelect(name, placeholder) {
+            const select = document.createElement("select");
+            select.name = name;
+            select.required = true;
+
+            const defaultOption = document.createElement("option");
+            defaultOption.value = "";
+            defaultOption.textContent = placeholder;
+            defaultOption.selected = true;
+
+            select.appendChild(defaultOption);
+
+            const values = name === "sales_person"
+                ? SALES_PERSONS
+                : INVOICE_TYPES;
+
+            values.forEach(function (value) {
+                const option = document.createElement("option");
+                option.value = value;
+                option.textContent = value;
+                select.appendChild(option);
+            });
+
+            return select;
+        }
+
+
+
+
+
+        function setFileStatus(el, message, type) { el.textContent = message; el.className = `file-status status-${type}` }
+        function invalidateBatch() { batchValidated = false; submitButton.disabled = true; submitResult.classList.remove("visible") }
+        function createRow(index) {
+            const tr = document.createElement("tr"); tr.dataset.row = String(index);
+            const sn = document.createElement("span"); sn.className = "sn-cell"; sn.textContent = String(index); tr.appendChild(makeCell(sn));
+            const fileCell = document.createElement("td"), fileInput = document.createElement("input"); fileInput.type = "file"; fileInput.name = "invoice"; fileInput.accept = ".pdf,application/pdf"; fileInput.required = true; fileInput.setAttribute("aria-label", `PDF file for row ${index}`);
+            const fileStatus = document.createElement("div"); fileStatus.className = "file-status status-pending"; fileStatus.textContent = "Not selected";
+            fileInput.addEventListener("change", () => { invalidateBatch(); uploadStatus.className = "process-status"; if (!fileInput.files.length) { setFileStatus(fileStatus, "Not selected", "pending"); return } const file = fileInput.files[0]; if (!file.name.toLowerCase().endsWith(".pdf") || (file.type && file.type !== "application/pdf")) { fileInput.value = ""; setFileStatus(fileStatus, "✕ Please select a PDF file.", "error"); return } setFileStatus(fileStatus, `Selected: ${file.name}. Upload validation pending.`, "pending") });
+            fileCell.append(fileInput, fileStatus); tr.appendChild(fileCell);
+            tr.appendChild(makeCell(createSelect("sales_person", "Select person"))); tr.appendChild(makeCell(createSelect("invoice_type", "Select type")));
+            // Extra columns can be added here later when their names are confirmed.
+
+            return tr
+        }
+        function renumberRows() { [...rowsContainer.rows].forEach((row, index) => { row.cells[0].firstElementChild.textContent = String(index + 1); row.dataset.row = String(index + 1); row.querySelector('input[type="file"]').setAttribute("aria-label", `PDF file for row ${index + 1}`) }); const count = rowsContainer.rows.length; rowCount.textContent = `${count} of ${MAX_FILES} PDFs`; addButton.disabled = count >= MAX_FILES; removeButton.disabled = count <= 1 }
+        addButton.addEventListener("click", () => { if (rowsContainer.rows.length >= MAX_FILES) return; invalidateBatch(); rowsContainer.appendChild(createRow(rowsContainer.rows.length + 1)); renumberRows() });
+        removeButton.addEventListener("click", () => { if (rowsContainer.rows.length <= 1) return; invalidateBatch(); rowsContainer.deleteRow(rowsContainer.rows.length - 1); renumberRows() });
+        function showProcessStatus(type, heading, details = []) { uploadStatus.className = `process-status visible ${type}`; uploadStatus.replaceChildren(); const strong = document.createElement("strong"); strong.textContent = heading; uploadStatus.appendChild(strong); if (details.length) { const list = document.createElement("ul"); details.forEach(detail => { const li = document.createElement("li"); li.textContent = detail; list.appendChild(li) }); uploadStatus.appendChild(list) } }
+        uploadButton.addEventListener("click", async () => {
+            invalidateBatch(); submitResult.classList.remove("visible"); const errors = [], files = [], rows = [...rowsContainer.rows];
+            rows.forEach((row, index) => {
+                const input = row.querySelector('input[type="file"]'), status = row.querySelector(".file-status"), sales = row.querySelector('select[name="sales_person"]'), type = row.querySelector('select[name="invoice_type"]');
+                if (!input.files.length) { const msg = `Row ${index + 1}: Select a PDF file.`; errors.push(msg); setFileStatus(status, `✕ ${msg}`, "error"); return }
+                const file = input.files[0]; if (!file.name.toLowerCase().endsWith(".pdf")) { const msg = `Row ${index + 1}: ${file.name} is not a PDF.`; errors.push(msg); setFileStatus(status, `✕ ${msg}`, "error"); return }
+                if (!sales.value) errors.push(`Row ${index + 1} (${file.name}): Select a Sales Person.`); if (!type.value) errors.push(`Row ${index + 1} (${file.name}): Select a Type.`); files.push({ file, status })
+            });
+            if (errors.length) { showProcessStatus("error", "Please fix the following issues before uploading:", errors); return }
+            uploadButton.disabled = true; addButton.disabled = true; removeButton.disabled = true; showProcessStatus("info", `Checking ${files.length} PDF(s)...`);
+            // Temporary UI-only stage. Real OCR, duplicate checks and upload are connected in the next backend step.
+            await new Promise(resolve => setTimeout(resolve, 400));
+            files.forEach(({ file, status }) => setFileStatus(status, `✓ ${file.name}: selected; backend validation pending.`, "success"));
+            uploadButton.disabled = false; renumberRows();
+            showProcessStatus("info", "Frontend checks passed. Backend validation is not connected yet.", ["Green checks currently confirm file selection and required fields only.", "Python OCR, duplicate filename/invoice-number checks, and real upload must be connected before Submit can save data."]);
+            submitButton.disabled = true;
+        });
+        submitButton.addEventListener("click", () => alert("Submission is not connected yet. No data has been written to Google Sheets."));
+        document.getElementById("invoice-form").addEventListener("submit", e => e.preventDefault());
+        rowsContainer.appendChild(createRow(1)); renumberRows();
+    </script>
+</body>
+
+</html>
